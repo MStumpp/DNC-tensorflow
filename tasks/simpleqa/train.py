@@ -69,8 +69,10 @@ if __name__ == '__main__':
     learning_rate = 1e-4
     momentum = 0.9
 
+    takeCheckpointEvery = 10000
+
     from_checkpoint = None
-    iterations = 100000
+    iterations = 108442*10
     start_step = 0
 
     options,_ = getopt.getopt(sys.argv[1:], '', ['checkpoint=', 'iterations=', 'start='])
@@ -157,7 +159,7 @@ if __name__ == '__main__':
                     input_data, target_output, seq_len, weights = prepare_sample(sample, lexicon_dict['-'], word_space_size)
 
                     summerize = (i % 100 == 0)
-                    take_checkpoint = (i != 0) and (i % end == 0)
+                    take_checkpoint = (i != 0) and (i % takeCheckpointEvery == 0)
 
                     loss_value, _, summary = session.run([
                         loss,
