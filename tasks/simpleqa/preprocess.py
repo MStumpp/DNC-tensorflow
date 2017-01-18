@@ -95,9 +95,9 @@ def encode_data(files_list, lexicons_dictionary, length_limit=None):
 
                 # get parts of tuple and process
                 parts = line.split("\t")
-                story_outputs.append(parts[0].lower()) # lexicons_dictionary[parts[0].lower()])
-                story_outputs.append(parts[1].lower()) # lexicons_dictionary[parts[1].lower()])
-                story_outputs.append(parts[2].lower()) # lexicons_dictionary[parts[2].lower()])
+                story_outputs.append(lexicons_dictionary[parts[0].lower()]) # lexicons_dictionary[parts[0].lower()])
+                story_outputs.append(lexicons_dictionary[parts[1].lower()]) # lexicons_dictionary[parts[1].lower()])
+                story_outputs.append(lexicons_dictionary[parts[2].lower()]) # lexicons_dictionary[parts[2].lower()])
 
                 # process question
                 # first seperate . and ? away from words into seperate lexicons
@@ -106,12 +106,12 @@ def encode_data(files_list, lexicons_dictionary, length_limit=None):
 
                 # process question
                 for i, word in enumerate(parts[3].split()):
-                    story_inputs.append(word.lower()) # lexicons_dictionary[word.lower()])
+                    story_inputs.append(lexicons_dictionary[word.lower()]) # lexicons_dictionary[word.lower()])
 
                 # placeholder for answers
-                story_inputs.append('-') # lexicons_dictionary['-'])
-                story_inputs.append('-') # lexicons_dictionary['-'])
-                story_inputs.append('-') # lexicons_dictionary['-'])
+                story_inputs.append(lexicons_dictionary['-'])
+                story_inputs.append(lexicons_dictionary['-'])
+                story_inputs.append(lexicons_dictionary['-'])
 
                 stories_lengths.append(len(story_inputs))
                 if len(story_inputs) <= limit:
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     lexicon_count = len(lexicon_dictionary)
 
     # append used punctuation to dictionary
-    # lexicon_dictionary['?'] = lexicon_count
+    lexicon_dictionary['-'] = lexicon_count
     # lexicon_dictionary['.'] = lexicon_count + 1
     # lexicon_dictionary['-'] = lexicon_count + 2
 

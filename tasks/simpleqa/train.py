@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     dirname = os.path.dirname(__file__)
     ckpts_dir = os.path.join(dirname , 'checkpoints')
-    data_dir = os.path.join(dirname, 'data', 'en-10k')
+    data_dir = os.path.join(dirname, 'data', 'data')
     tb_logs_dir = os.path.join(dirname, 'logs')
 
     llprint("Loading Data ... ")
