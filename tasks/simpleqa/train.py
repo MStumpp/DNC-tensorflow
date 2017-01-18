@@ -21,7 +21,7 @@ def load(path):
 
 def onehot(index, size):
     vec = np.zeros(size, dtype=np.float32)
-    vec[index] = 1.0
+    vec[int(index)] = 1.0
     return vec
 
 def prepare_sample(sample, target_code, word_space_size):
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     batch_size = 1
     input_size = output_size = len(lexicon_dict)
-    sequence_max_length = 100
+    sequence_max_length = 20
     word_space_size = len(lexicon_dict)
     words_count = 256
     word_size = 64

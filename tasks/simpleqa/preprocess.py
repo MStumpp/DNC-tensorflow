@@ -50,7 +50,7 @@ def create_dictionary(files_list):
                 parts[3] = re.sub('[^A-Za-z0-9\\s]+', ' ', parts[3])
 
                 for word in parts[3].split():
-                    if not word.lower() in lexicons_dict:
+                    if not word.lower() in lexicons_dict and word.isalpha():
                         lexicons_dict[word.lower()] = id_counter
                         id_counter += 1
 
@@ -106,7 +106,8 @@ def encode_data(files_list, lexicons_dictionary, length_limit=None):
 
                 # process question
                 for i, word in enumerate(parts[3].split()):
-                    story_inputs.append(lexicons_dictionary[word.lower()]) # lexicons_dictionary[word.lower()])
+                    if word.isalpha():
+                        story_inputs.append(lexicons_dictionary[word.lower()]) # lexicons_dictionary[word.lower()])
 
                 # placeholder for answers
                 story_inputs.append(lexicons_dictionary['-'])
@@ -131,7 +132,7 @@ if __name__ == '__main__':
     options,_ = getopt.getopt(sys.argv[1:], '', ['data_dir=', 'single_train', 'length_limit='])
     data_dir = None
     joint_train = True
-    length_limit = None
+    length_limit = 20
     files_list = []
 
     if not exists(join(task_dir, 'data')):
@@ -155,6 +156,7 @@ if __name__ == '__main__':
 
     lexicon_dictionary = create_dictionary(files_list)
     lexicon_count = len(lexicon_dictionary)
+    print lexicon_count
 
     # append used punctuation to dictionary
     lexicon_dictionary['-'] = lexicon_count
