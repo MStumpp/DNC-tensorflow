@@ -61,7 +61,6 @@ if __name__ == '__main__':
     batch_size = 1
     input_size = output_size = len(lexicon_dict)
     sequence_max_length = 20
-    print len(lexicon_dict)
     word_space_size = len(lexicon_dict)
     words_count = 256
     word_size = 64

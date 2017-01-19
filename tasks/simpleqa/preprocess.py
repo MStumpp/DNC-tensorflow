@@ -70,6 +70,9 @@ def create_dictionary(files_list, max_dictionary_size):
         with open(filename, 'r') as fobj:
             for line in fobj:
 
+                # get parts of tuple and process
+                parts = line.split("\t")
+
                 # process question
                 parts[3] = parts[3].replace('\'s', ' is ')
                 parts[3] = re.sub('[^A-Za-z0-9\\s]+', ' ', parts[3])
@@ -160,8 +163,8 @@ if __name__ == '__main__':
     options,_ = getopt.getopt(sys.argv[1:], '', ['data_dir=', 'single_train', 'length_limit='])
     data_dir = None
     joint_train = True
-    length_limit = 1000
-    max_dictionary_size = 20000
+    length_limit = 20
+    max_dictionary_size = 50000
     files_list = []
 
     if not exists(join(task_dir, 'data')):
@@ -189,8 +192,6 @@ if __name__ == '__main__':
     # append used punctuation to dictionar    
     lexicon_dictionary['UNKNOWN'] = lexicon_count
     lexicon_dictionary['-'] = lexicon_count + 1
-
-    print len(lexicon_dictionary)
 
     encoded_files, stories_lengths = encode_data(files_list, lexicon_dictionary, length_limit)
 
