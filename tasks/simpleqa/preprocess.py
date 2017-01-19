@@ -25,9 +25,10 @@ def create_dictionary(files_list, max_dictionary_size):
         the constructed dictionary of lexicons
     """
 
-    lexicons_question_dict = {}
-    lexicons_question_count_dict = {}
     lexicons_dict = {}
+    lexicons_question_count_dict = {}
+    lexicons_question_accepted_dict = {}
+
     id_counter = 0
 
     llprint("Creating Dictionary ... 0/%d" % (len(files_list)))
@@ -48,27 +49,37 @@ def create_dictionary(files_list, max_dictionary_size):
                     lexicons_dict[parts[2].lower()] = id_counter
                     id_counter += 1
 
+                # count word occurances
+                parts[3] = parts[3].replace('\'s', ' is ')
+                parts[3] = re.sub('[^A-Za-z0-9\\s]+', ' ', parts[3])
+                
+                for word in parts[3].split():
+                    if word.isalpha():
+                        if not word.lower() in lexicons_question_count_dict:
+                            lexicons_question_count_dict[word.lower()] = 1
+                        else:
+                            lexicons_question_count_dict[word.lower()] = lexicons_question_count_dict[word.lower()]+1
+
+    sorted_lexicons_question_count_dict = sorted(lexicons_question_count_dict.items(), key=operator.itemgetter(1), reverse=True)
+    for count, v in enumerate(sorted_lexicons_question_count_dict):
+        lexicons_question_accepted_dict[v[0]] = v[1]
+        if count >= max_dictionary_size-1:
+            break
+
+    for indx, filename in enumerate(files_list):
+        with open(filename, 'r') as fobj:
+            for line in fobj:
+
                 # process question
                 parts[3] = parts[3].replace('\'s', ' is ')
                 parts[3] = re.sub('[^A-Za-z0-9\\s]+', ' ', parts[3])
 
                 for word in parts[3].split():
-                    if word.isalpha():
-                        if not word.lower() in lexicons_question_dict:
-                            lexicons_question_dict[word.lower()] = id_counter
-                            id_counter += 1
-                            lexicons_question_count_dict[word.lower()] = 1
-                        else:
-                            lexicons_question_count_dict[word.lower()] = lexicons_question_count_dict[word.lower()]+1
+                    if word.isalpha() and not word.lower() in lexicons_dict and word.lower() in lexicons_question_accepted_dict:
+                        lexicons_dict[word.lower()] = id_counter
+                        id_counter += 1
 
         llprint("\rCreating Dictionary ... %d/%d" % ((indx + 1), len(files_list)))
-
-    sorted_lexicons_question_count_dict = sorted(lexicons_question_count_dict.items(), key=operator.itemgetter(1), reverse=True)
-
-    for count, v in enumerate(sorted_lexicons_question_count_dict):
-        lexicons_dict[v[0]] = lexicons_question_dict[v[0]]
-        if count >= max_dictionary_size-1:
-            break
 
     print "\rCreating Dictionary ... Done!"
     return lexicons_dict
@@ -178,6 +189,8 @@ if __name__ == '__main__':
     # append used punctuation to dictionar    
     lexicon_dictionary['UNKNOWN'] = lexicon_count
     lexicon_dictionary['-'] = lexicon_count + 1
+
+    print len(lexicon_dictionary)
 
     encoded_files, stories_lengths = encode_data(files_list, lexicon_dictionary, length_limit)
 
