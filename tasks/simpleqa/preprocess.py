@@ -3,6 +3,7 @@ import pickle
 import getopt
 import numpy as np
 import re
+import operator
 from shutil import rmtree
 from os import listdir, mkdir
 from os.path import join, isfile, isdir, dirname, basename, normpath, abspath, exists
@@ -11,7 +12,7 @@ def llprint(message):
     sys.stdout.write(message)
     sys.stdout.flush()
 
-def create_dictionary(files_list):
+def create_dictionary(files_list, max_dictionary_size):
     """
     creates a dictionary of unique lexicons in the dataset and their mapping to numbers
 
@@ -24,6 +25,8 @@ def create_dictionary(files_list):
         the constructed dictionary of lexicons
     """
 
+    lexicons_question_dict = {}
+    lexicons_question_count_dict = {}
     lexicons_dict = {}
     id_counter = 0
 
@@ -50,11 +53,22 @@ def create_dictionary(files_list):
                 parts[3] = re.sub('[^A-Za-z0-9\\s]+', ' ', parts[3])
 
                 for word in parts[3].split():
-                    if not word.lower() in lexicons_dict and word.isalpha():
-                        lexicons_dict[word.lower()] = id_counter
-                        id_counter += 1
+                    if word.isalpha():
+                        if not word.lower() in lexicons_question_dict:
+                            lexicons_question_dict[word.lower()] = id_counter
+                            id_counter += 1
+                            lexicons_question_count_dict[word.lower()] = 1
+                        else:
+                            lexicons_question_count_dict[word.lower()] = lexicons_question_count_dict[word.lower()]+1
 
         llprint("\rCreating Dictionary ... %d/%d" % ((indx + 1), len(files_list)))
+
+    sorted_lexicons_question_count_dict = sorted(lexicons_question_count_dict.items(), key=operator.itemgetter(1), reverse=True)
+
+    for count, v in enumerate(sorted_lexicons_question_count_dict):
+        lexicons_dict[v[0]] = lexicons_question_dict[v[0]]
+        if count >= max_dictionary_size-1:
+            break
 
     print "\rCreating Dictionary ... Done!"
     return lexicons_dict
@@ -80,6 +94,9 @@ def encode_data(files_list, lexicons_dictionary, length_limit=None):
     story_outputs = None
     stories_lengths = []
     limit = length_limit if not length_limit is None else float("inf")
+
+    unknown_idx = lexicons_dictionary['UNKNOWN']
+    answer_idx = lexicons_dictionary['-']
 
     llprint("Encoding Data ... 0/%d" % (len(files_list)))
 
@@ -107,12 +124,12 @@ def encode_data(files_list, lexicons_dictionary, length_limit=None):
                 # process question
                 for i, word in enumerate(parts[3].split()):
                     if word.isalpha():
-                        story_inputs.append(lexicons_dictionary[word.lower()]) # lexicons_dictionary[word.lower()])
+                        story_inputs.append(lexicons_dictionary[word.lower()] if word.lower() in lexicons_dictionary else unknown_idx) # lexicons_dictionary[word.lower()])
 
                 # placeholder for answers
-                story_inputs.append(lexicons_dictionary['-'])
-                story_inputs.append(lexicons_dictionary['-'])
-                story_inputs.append(lexicons_dictionary['-'])
+                story_inputs.append(answer_idx)
+                story_inputs.append(answer_idx)
+                story_inputs.append(answer_idx)
 
                 stories_lengths.append(len(story_inputs))
                 if len(story_inputs) <= limit:
@@ -132,7 +149,8 @@ if __name__ == '__main__':
     options,_ = getopt.getopt(sys.argv[1:], '', ['data_dir=', 'single_train', 'length_limit='])
     data_dir = None
     joint_train = True
-    length_limit = 20
+    length_limit = 1000
+    max_dictionary_size = 20000
     files_list = []
 
     if not exists(join(task_dir, 'data')):
@@ -154,12 +172,12 @@ if __name__ == '__main__':
         if isfile(entry_path):
             files_list.append(entry_path)
 
-    lexicon_dictionary = create_dictionary(files_list)
+    lexicon_dictionary = create_dictionary(files_list, max_dictionary_size)
     lexicon_count = len(lexicon_dictionary)
-    print lexicon_count
 
-    # append used punctuation to dictionary
-    lexicon_dictionary['-'] = lexicon_count
+    # append used punctuation to dictionar    
+    lexicon_dictionary['UNKNOWN'] = lexicon_count
+    lexicon_dictionary['-'] = lexicon_count + 1
 
     encoded_files, stories_lengths = encode_data(files_list, lexicon_dictionary, length_limit)
 
